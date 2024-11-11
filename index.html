@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send Location to Google Sheets (Chrome, Huawei, Safari Only)</title>
+    <title>Send Location to Google Sheets (Chrome Only)</title>
     <link rel="stylesheet" href="css.css"> 
 </head>
 <body>
@@ -29,37 +29,41 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
     <script>
-function isAllowedBrowser() {
-    const userAgent = navigator.userAgent.toLowerCase();
-
-    // فحص المتصفحات المختلفة
-    const isChrome = userAgent.includes('chrome') && !userAgent.includes('edge') && !userAgent.includes('opr');
-    const isEdge = userAgent.includes('edge') || userAgent.includes('edg');
-    const isBrave = navigator.brave && navigator.brave.isBrave ? true : false;
-    const isFirefox = userAgent.includes('firefox');
-    const isSafari = userAgent.includes('safari') && !userAgent.includes('chrome');
-    const isOpera = userAgent.includes('opr') || userAgent.includes('opera');
-    const isHuawei = userAgent.includes('huawei');
-    const isSafariMobile = userAgent.includes('safari') && userAgent.includes('mobile');
-
-    // السماح فقط لـ Chrome و Huawei و Safari على آيفون
-    return (isChrome && !isBrave && !isEdge && !isFirefox && !isOpera) || isHuawei || isSafariMobile;
+function isChromeBrowser() {
+    if (navigator.userAgentData) {
+        const brands = navigator.userAgentData.brands;
+        return brands.some(brand => brand.brand === 'Google Chrome');
+    } else {
+        const userAgent = navigator.userAgent.toLowerCase();
+return (
+    userAgent.includes('chrome') && 
+    !userAgent.includes('edg') && 
+    !userAgent.includes('opr') && 
+    !userAgent.includes('brave') && 
+    !userAgent.includes('firefox') && 
+    !userAgent.includes('vivaldi') && 
+    !userAgent.includes('ucbrowser') && 
+    !userAgent.includes('duckduckgo') && 
+    !userAgent.includes('yabrowser') && 
+    !userAgent.includes('whale') ||
+    userAgent.includes('huawei') || // السماح لمتصفح هواوي
+    (userAgent.includes('safari') && userAgent.includes('mobile')) // السماح لمتصفح آيفون
+);
+    }
 }
-
-if (!isAllowedBrowser()) {
-    alert("هذا الموقع متاح فقط على متصفح Google Chrome و Huawei و Safari على أجهزة آيفون.");
+if (!isChromeBrowser()) {
+    alert("هذا الموقع متاح فقط على متصفح Google Chrome.");
     document.body.innerHTML = `
         <div style="display: flex; justify-content: center; align-items: center; height: 27vh; text-align: center; font-family: Arial, sans-serif; background-color: #333;">
             <div style="border: 2px solid #f44336; padding: 20px; border-radius: 8px;">
                 <h2 style="color: white;">تنبيه!</h2>
-                <p style="font-size: 18px; color: white;">هذا الموقع متاح فقط على متصفح <strong>جوجل كروم</strong> و <strong>Huawei</strong> و <strong>Safari على آيفون</strong>.</p>
-                <p style="font-size: 16px; color: white;">يرجى استخدام أحد المتصفحات المدعومة للوصول إلى هذا الموقع.</p>
+                <p style="font-size: 18px; color: white;">هذا الموقع متاح فقط على متصفح <strong>جوجل كروم</strong>.</p>
+                <p style="font-size: 16px; color: white;">يرجى استخدام متصفح كروم للوصول إلى هذا الموقع.</p>
             </div>
         </div>
     `;
-    throw new Error("Unsupported browser detected, stopping script execution.");
+    throw new Error("Non-Chrome browser detected, stopping script execution.");
 }
-
 
 let registrationOpenTime = new Date("2024-11-05T01:30:00");
 let registrationCloseTime = new Date("2024-11-05T01:59:00");
