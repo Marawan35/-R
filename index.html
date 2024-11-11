@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send Location to Google Sheets (Chrome Only)</title>
+    <title>Send Location to Google Sheets (Chrome, Huawei, iPhone)</title>
     <link rel="stylesheet" href="css.css"> 
 </head>
 <body>
@@ -29,41 +29,28 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
     <script>
-function isChromeBrowser() {
-    if (navigator.userAgentData) {
-        const brands = navigator.userAgentData.brands;
-        return brands.some(brand => brand.brand === 'Google Chrome');
-    } else {
-        const userAgent = navigator.userAgent.toLowerCase();
-        return (
-            (userAgent.includes('chrome') && 
-            !userAgent.includes('edg') && 
-            !userAgent.includes('opr') && 
-            !userAgent.includes('brave') && 
-            !userAgent.includes('firefox') && 
-            !userAgent.includes('vivaldi') && 
-            !userAgent.includes('ucbrowser') && 
-            !userAgent.includes('duckduckgo') && 
-            !userAgent.includes('yabrowser') && 
-            !userAgent.includes('whale')) ||
-            userAgent.includes('huawei') || // السماح لمتصفح هواوي
-            (userAgent.includes('safari') && userAgent.includes('mobile')) // السماح لسفاري على آيفون
-        );
-    }
+function isSupportedBrowser() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    return (
+        navigator.geolocation && 'fetch' in window &&
+        (userAgent.includes('chrome') || 
+         (userAgent.includes('safari') && userAgent.includes('mobile')) || 
+         userAgent.includes('huawei'))
+    );
 }
 
-if (!isChromeBrowser()) {
-    alert("هذا الموقع متاح فقط على متصفح Google Chrome.");
+if (!isSupportedBrowser()) {
+    alert("هذا الموقع متاح فقط على متصفحات تدعم الموقع الجغرافي، مثل جوجل كروم، سفاري (iPhone)، ومتصفح هواوي.");
     document.body.innerHTML = `
         <div style="display: flex; justify-content: center; align-items: center; height: 27vh; text-align: center; font-family: Arial, sans-serif; background-color: #333;">
             <div style="border: 2px solid #f44336; padding: 20px; border-radius: 8px;">
                 <h2 style="color: white;">تنبيه!</h2>
-                <p style="font-size: 18px; color: white;">هذا الموقع متاح فقط على متصفح <strong>جوجل كروم</strong>.</p>
-                <p style="font-size: 16px; color: white;">يرجى استخدام متصفح كروم للوصول إلى هذا الموقع.</p>
+                <p style="font-size: 18px; color: white;">هذا الموقع متاح فقط على متصفحات تدعم الموقع الجغرافي.</p>
+                <p style="font-size: 16px; color: white;">يرجى استخدام متصفح حديث للوصول إلى هذا الموقع.</p>
             </div>
         </div>
     `;
-    throw new Error("Non-Chrome browser detected, stopping script execution.");
+    throw new Error("Non-supported browser detected, stopping script execution.");
 }
 
 let registrationOpenTime = new Date("2024-11-05T01:30:00");
@@ -101,13 +88,13 @@ navigator.permissions.query({ name: 'geolocation' }).then(function(permissionSta
 
 document.getElementById('getLocationBtn').addEventListener('click', function() {
     const button = document.getElementById('getLocationBtn');
-    button.disabled = true; // تعطيل الزر
-    button.innerText = "جاري الإرسال..."; // تغيير النص
+    button.disabled = true;
+    button.innerText = "جاري الإرسال...";
 
     if (!canRegister()) {
         alert("التسجيل غير مسموح به قبل أو بعد الوقت المحدد.");
-        button.disabled = false; // إعادة تمكين الزر إذا كان التسجيل غير مسموح به
-        button.innerText = "Submit"; // إعادة النص الأصلي
+        button.disabled = false;
+        button.innerText = "Submit";
         return;
     }
 
@@ -119,8 +106,8 @@ document.getElementById('getLocationBtn').addEventListener('click', function() {
         navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
     } else {
         alert("Geolocation is not supported by this browser.");
-        button.disabled = false; // إعادة تمكين الزر إذا لم يتم دعم الموقع الجغرافي
-        button.innerText = "Submit"; // إعادة النص الأصلي
+        button.disabled = false;
+        button.innerText = "Submit";
     }
 });
 
@@ -180,21 +167,21 @@ function successCallback(position) {
                     console.log("Location, IP, and fingerprint submitted successfully:", data);
                     alert(statusMessage);
                     localStorage.setItem('submissionTime', new Date().getTime());
-                    button.disabled = true; // تعطيل الزر بعد الإرسال
-                    button.innerText = "لقد أرسلت موقعك بالفعل!"; // تحديث النص
+                    button.disabled = true;
+                    button.innerText = "لقد أرسلت موقعك بالفعل!";
                 })
                 .catch(error => {
                     console.error("Error:", error);
                     alert("Error submitting location: " + error.message);
-                    button.disabled = false; // إعادة تمكين الزر في حالة الخطأ
-                    button.innerText = "Submit"; // إعادة النص الأصلي
+                    button.disabled = false;
+                    button.innerText = "Submit";
                 });
             });
         })
         .catch(error => {
             console.error("Error getting IP address:", error);
-            button.disabled = false; // إعادة تمكين الزر في حالة الخطأ
-            button.innerText = "Submit"; // إعادة النص الأصلي
+            button.disabled = false;
+            button.innerText = "Submit";
         });
 }
 
@@ -213,8 +200,8 @@ function errorCallback(error) {
             alert("حدث خطأ غير معروف.");
             break;
     }
-    button.disabled = false; // إعادة تمكين الزر في حالة الخطأ
-    button.innerText = "Submit"; // إعادة النص الأصلي
+    button.disabled = false;
+    button.innerText = "Submit";
 }
     </script>
 </body>
